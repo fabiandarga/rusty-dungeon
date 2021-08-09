@@ -1,0 +1,10 @@
+[
+    {
+        "name": "Test",
+        "id": 1,
+        "rooms": [2],
+        "level_points": 100,
+        "first_room": 1,
+        "final_room": 3
+    }
+]

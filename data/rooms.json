@@ -1,0 +1,37 @@
+[
+    {
+        "id": 1,
+        "title": "Welcome",
+        "text": "Welcome to the Rusty Dungeon",
+        "choices": [
+            {"text": "left", "consequences": [
+                { "t": "GainXp", "c": 50 },
+                { "t": "GainItem", "c": 1 }
+            ]},
+            {"text": "right", "consequences": [
+                { "t": "GainSkill", "c": 1 }
+            ]}
+        ]
+    },
+    {
+        "id": 2,
+        "title": "Your Average Room",
+        "text": "Do something",
+        "choices": [
+            {"text": "left", "consequences": [
+                { "t": "GainLevelPoints", "c": 100 }
+            ]},
+            {"text": "right", "consequences": [
+                { "t": "GainXp", "c": 30 }
+            ]}
+        ]
+    },
+    {
+        "id": 3,
+        "title": "Victory",
+        "text": "You did it!",
+        "choices": [
+            {"text": "Ok", "consequences": []}
+        ]
+    }
+]
