@@ -13,8 +13,8 @@ pub enum RoomResult {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Choice {
-    text: String,
-    consequences: Vec<RoomResult>
+    pub text: String,
+    pub consequences: Vec<RoomResult>
 }
 
 #[derive(Serialize, Deserialize, Clone)]

@@ -134,7 +134,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let size = frame.size();
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
-                .margin(2)
+                .margin(3)
                 .constraints(
                     [
                         Constraint::Length(3),
