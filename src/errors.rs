@@ -9,5 +9,4 @@ pub enum Error {
     ParseDBError(#[from] serde_json::Error),
     #[error("error invalid game data")]
     GameDataError(),
-    
 }

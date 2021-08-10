@@ -2,6 +2,7 @@ use std::rc::Rc;
 use crate::levels::models::{ Level, Room, Item };
 
 pub struct GameState {
+    pub xp: u16,
     pub level_points: u16,
     pub current_level: Option<Rc<Level>>,
     pub current_room: Option<Rc<Room>>,
@@ -12,6 +13,7 @@ pub struct GameState {
 impl GameState {
     pub fn new() -> GameState {
         GameState {
+            xp: 0,
             level_points: 0,
             current_level: None,
             current_room: None,

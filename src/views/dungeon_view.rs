@@ -1,3 +1,5 @@
+use crate::GameHandler;
+use crate::Error;
 use tui::text::Spans;
 use tui::text::Span;
 use crate::levels::models::Choice;
@@ -87,17 +89,24 @@ impl DungeonView {
             .border_type(BorderType::Double)
     }
 
-    pub fn handle_input(&self, key_code: KeyCode) {
+    pub fn handle_input(&mut self, key_code: KeyCode, game_handler: &mut GameHandler) -> Result<bool, Error> {
         match key_code {
             KeyCode::Char('1') => {
-                println!("1");
-
+                game_handler.execute_room_choice(1)?;
             }
             KeyCode::Char('2') => {
-                println!("2");
+                game_handler.execute_room_choice(2)?;
+            }
+            KeyCode::Char('3') => {
+                game_handler.execute_room_choice(3)?;
+            }
+            KeyCode::Char('4') => {
+                game_handler.execute_room_choice(4)?;
             }
             _ => {}
         }
+
+        Ok(true)
     }
 }
 

@@ -1,7 +1,10 @@
+use crate::Error;
 use std::sync::Mutex;
 use std::sync::Arc;
+
 use crate::data::GameData;
 use crate::state::GameState;
+use crate::levels::models::RoomResult::{GainLevelPoints, GainXp, GainItem, GainSkill, StartFight};
 
 pub struct GameHandler {
     game_data: GameData,
@@ -36,5 +39,40 @@ impl GameHandler {
         };
 
         return Ok(());
+    }
+
+    pub fn execute_room_choice(&mut self, index: usize) -> Result<(), Error> {
+
+        let choices = match &self.game_state.lock().unwrap().current_room {
+            Some(room) => room.choices.clone(),
+            None => return Err(Error::GameDataError()),
+        };
+
+        if choices.len() > index {
+            let cons = &choices[index].consequences;
+            for c in cons {
+                match c {
+                    GainLevelPoints(points) => {
+                        self.increase_level_points(points);
+                    },
+                    GainXp(xp) => {
+                        self.increase_xp(xp);
+                    },
+                    GainItem(_id) => {},
+                    GainSkill(_id) => {},
+                    StartFight(_id) => {},
+                }
+            }  
+        }
+
+        Ok(())
+    }
+
+    pub fn increase_level_points(&mut self, points: &u16) {
+        self.game_state.lock().unwrap().level_points += points;
+    }
+
+    pub fn increase_xp(&mut self, points: &u16) {
+        self.game_state.lock().unwrap().xp += points;
     }
 }

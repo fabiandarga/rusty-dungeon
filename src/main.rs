@@ -82,8 +82,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let game_data = GameData::new(levels, rooms, items);
     let state = Arc::new(Mutex::new(GameState::new()));
 
-    let mut game_handler: GameHandler = GameHandler::new(game_data, state.clone());
-    game_handler.start_game().expect("Can start game");
+    let game_handler = Arc::new(Mutex::new(GameHandler::new(game_data, state.clone())));
+
+    let mut main_main_handler = game_handler.lock().unwrap();
+    main_main_handler.start_game().expect("Can start game");
 
     enable_raw_mode().expect("can run in raw mode");
 
@@ -133,9 +135,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     pet_list_state.select(Some(0));
 
     let loop_terminal = terminal.clone();
+    let loop_game_handler =game_handler.clone();
+
     loop {
 
-        let dungeon_view = DungeonView {};
+        let mut dungeon_view = DungeonView {};
         let menu_view = MenuView {};
         let state = state.clone();
 
@@ -205,11 +209,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     _ => {}
                 };
 
-                
-
                 match active_menu_item {
                     MenuItem::Dungeon => {
-                        dungeon_view.handle_input(event.code);
+                        dungeon_view.handle_input(event.code, &mut loop_game_handler.lock().unwrap())?;
                     }
                     MenuItem::Menu => {
                         let res = menu_view.handle_input(event.code, &mut global_handler);
