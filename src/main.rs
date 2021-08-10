@@ -85,8 +85,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let game_handler = Arc::new(Mutex::new(GameHandler::new(game_data, state.clone())));
 
-    let mut main_main_handler = game_handler.lock().unwrap();
-    main_main_handler.start_game().expect("Can start game");
+    let mut main_game_handler = game_handler.lock().unwrap();
+    main_game_handler.start_game().expect("Can start game");
+    drop(main_game_handler);
 
     enable_raw_mode().expect("can run in raw mode");
 
