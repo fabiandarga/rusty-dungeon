@@ -16,9 +16,12 @@ impl GameData {
         }
     }
 
+    pub fn find_item_by_id(&self, item_id: u16) -> Option<&Rc<Item>> {
+        self.items.iter().find(|item| item.id == item_id)
+    }
+
     pub fn find_level_by_id(&self, level_id: u16) -> Option<&Rc<Level>> {
-        let mut iter = self.levels.iter();
-        iter.find(|level| level.id == level_id)
+        self.levels.iter().find(|level| level.id == level_id)
     }
 
 

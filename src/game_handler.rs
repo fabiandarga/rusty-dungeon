@@ -58,7 +58,9 @@ impl GameHandler {
                     GainXp(xp) => {
                         self.increase_xp(xp);
                     },
-                    GainItem(_id) => {},
+                    GainItem(id) => {
+                        self.gain_item(id);
+                    },
                     GainSkill(_id) => {},
                     StartFight(_id) => {},
                 }
@@ -66,6 +68,16 @@ impl GameHandler {
         }
 
         Ok(())
+    }
+
+    pub fn gain_item(&mut self, id: &u16) {
+        let opt_item = self.game_data.find_item_by_id(*id);
+        match opt_item {
+            Some(item) => {
+                self.game_state.lock().unwrap().owned_items.push(item.clone());
+            }
+            None => {}
+        }
     }
 
     pub fn increase_level_points(&mut self, points: &u16) {
