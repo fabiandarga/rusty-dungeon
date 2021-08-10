@@ -1,4 +1,3 @@
-use crate::views::MenuView;
 use std::sync::Mutex;
 use std::sync::Arc;
 use std::fs;
@@ -41,7 +40,7 @@ mod state;
 use crate::state::GameState;
 
 mod views;
-use crate::views::DungeonView;
+use crate::views::{ DungeonView, MenuView, CharacterView };
 
 mod errors;
 use crate::errors::Error;
@@ -58,6 +57,7 @@ enum Event<I> {
 #[derive(Copy, Clone, Debug)]
 enum MenuItem {
     Dungeon,
+    Character,
     Items,
     Menu,
 }
@@ -66,8 +66,9 @@ impl From<MenuItem> for usize {
     fn from(input: MenuItem) -> usize {
         match input {
             MenuItem::Dungeon => 0,
-            MenuItem::Items => 1,
-            MenuItem::Menu => 2,
+            MenuItem::Character => 1,
+            MenuItem::Items => 2,
+            MenuItem::Menu => 3,
         }
     }
 }
@@ -129,18 +130,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         quit_fn: &mut quit,
     };
 
-    let menu_titles = vec!["Dungeon", "Items", "Menu"];
+    let menu_titles = vec!["Dungeon", "Character", "Items", "Menu"];
     let mut active_menu_item = MenuItem::Dungeon;
     let mut pet_list_state = ListState::default();
     pet_list_state.select(Some(0));
 
     let loop_terminal = terminal.clone();
-    let loop_game_handler =game_handler.clone();
+    let loop_game_handler = game_handler.clone();
 
     loop {
 
         let mut dungeon_view = DungeonView {};
         let menu_view = MenuView {};
+        let character_view = CharacterView {};
+
         let state = state.clone();
 
         loop_terminal.lock().unwrap().draw(|frame| {
@@ -183,7 +186,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             frame.render_widget(tabs, chunks[0]);
 
             match active_menu_item {
-                MenuItem::Dungeon => dungeon_view.render(frame, chunks[1], &state.lock().unwrap()).expect("To render Dungeon"),
+                MenuItem::Dungeon => {
+                    dungeon_view.render(frame, chunks[1], &state.lock().unwrap()).expect("To render Dungeon");
+                },
+                MenuItem::Character => {
+                    character_view.render(frame, chunks[1], &state.lock().unwrap()).expect("To render Character");
+                },
                 MenuItem::Items => {
                     let pets_chunks = Layout::default()
                         .direction(Direction::Horizontal)
@@ -195,7 +203,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     frame.render_stateful_widget(left, pets_chunks[0], &mut pet_list_state);
                     frame.render_widget(right, pets_chunks[1]);
                 },
-                MenuItem::Menu => menu_view.render(frame, chunks[1], &state.lock().unwrap()).expect("To render Menu"),
+                MenuItem::Menu => {
+                    menu_view.render(frame, chunks[1], &state.lock().unwrap()).expect("To render Menu");
+                },
             }
         })?;
 
@@ -204,6 +214,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Event::Input(event) => {
                 match event.code {
                     KeyCode::Char('d') => active_menu_item = MenuItem::Dungeon,
+                    KeyCode::Char('c') => active_menu_item = MenuItem::Character,
                     KeyCode::Char('i') => active_menu_item = MenuItem::Items,
                     KeyCode::Char('m') => active_menu_item = MenuItem::Menu,
                     _ => {}
@@ -212,7 +223,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 match active_menu_item {
                     MenuItem::Dungeon => {
                         dungeon_view.handle_input(event.code, &mut loop_game_handler.lock().unwrap())?;
-                    }
+                    },
+                    MenuItem:: Character => {
+                        character_view.handle_input(event.code, &mut loop_game_handler.lock().unwrap())?;
+                    },
                     MenuItem::Menu => {
                         let res = menu_view.handle_input(event.code, &mut global_handler);
                         if let Ok(should_continue) = res {
@@ -220,7 +234,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 break;
                             }
                         }
-                    }
+                    },
                     _ => {}
                 };
             },
