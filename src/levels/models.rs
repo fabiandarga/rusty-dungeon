@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use strum_macros::Display;
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Display)]
 #[serde(tag = "t", content = "c")]
 pub enum RoomResult {
     GainLevelPoints(u16),

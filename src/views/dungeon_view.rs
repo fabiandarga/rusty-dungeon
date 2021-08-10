@@ -92,16 +92,16 @@ impl DungeonView {
     pub fn handle_input(&mut self, key_code: KeyCode, game_handler: &mut GameHandler) -> Result<bool, Error> {
         match key_code {
             KeyCode::Char('1') => {
-                game_handler.execute_room_choice(1)?;
+                game_handler.execute_room_choice(0)?;
             }
             KeyCode::Char('2') => {
-                game_handler.execute_room_choice(2)?;
+                game_handler.execute_room_choice(1)?;
             }
             KeyCode::Char('3') => {
-                game_handler.execute_room_choice(3)?;
+                game_handler.execute_room_choice(2)?;
             }
             KeyCode::Char('4') => {
-                game_handler.execute_room_choice(4)?;
+                game_handler.execute_room_choice(3)?;
             }
             _ => {}
         }
