@@ -16,9 +16,7 @@ use tui::{
 
 use ::tui::backend::Backend;
 
-pub struct DungeonView {
-
-}
+pub struct DungeonView {}
 
 impl DungeonView {
     pub fn render(&self, frame: &mut Frame<impl Backend>, rect: Rect, game_state: &GameState) -> Result<(), String> {

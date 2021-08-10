@@ -1,3 +1,4 @@
+use crate::views::MenuView;
 use std::sync::Mutex;
 use std::sync::Arc;
 use std::fs;
@@ -15,18 +16,14 @@ use crossterm::{
 
 use tui::{
     backend::CrosstermBackend,
-    layout::{Alignment, Constraint, Direction, Layout},
+    layout::{Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     text::{Span, Spans},
     widgets::{
-        Block, BorderType, Borders, Cell, List, ListItem, ListState, Paragraph, Row, Table, Tabs,
+        Block, BorderType, Borders, Cell, List, ListItem, ListState, Row, Table, Tabs,
     },
     Terminal,
 };
-
-const ITEMS_PATH: &str = "./data/items.json";
-const ROOMS_PATH: &str = "./data/rooms.json";
-const LEVEL_PATH: &str = "./data/levels.json";
 
 mod levels;
 use crate::levels::models::{ Level, Room, Item };
@@ -37,22 +34,21 @@ use crate::data::GameData;
 mod game_handler;
 use crate::game_handler::GameHandler;
 
+mod global_handler;
+use crate::global_handler::GlobalHandler;
+
 mod state;
 use crate::state::GameState;
 
 mod views;
-
 use crate::views::DungeonView;
 
-#[derive(Error, Debug)]
-pub enum Error {
-    #[error("error reading the DB file: {0}")]
-    ReadDBError(#[from] io::Error),
-    #[error("error parsing the DB file: {0}")]
-    ParseDBError(#[from] serde_json::Error),
-    #[error("error invalid game data")]
-    GameDataError(),
-}
+mod errors;
+use crate::errors::Error;
+
+const ITEMS_PATH: &str = "./data/items.json";
+const ROOMS_PATH: &str = "./data/rooms.json";
+const LEVEL_PATH: &str = "./data/levels.json";
 
 enum Event<I> {
     Input(I),
@@ -75,6 +71,7 @@ impl From<MenuItem> for usize {
         }
     }
 }
+
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
 
@@ -115,22 +112,34 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let stdout = io::stdout();
     let backend = CrosstermBackend::new(stdout);
-    let mut terminal = Terminal::new(backend)?;
-    terminal.clear()?;
+    let terminal = Arc::new(Mutex::new(Terminal::new(backend)?));
+
+    let global_terminal = terminal.clone();
+    global_terminal.lock().unwrap().clear()?;
+
+    let mut quit = || -> Result<(), Error> {
+        disable_raw_mode()?;
+        global_terminal.lock().unwrap().show_cursor()?;
+        Ok(())
+    };
+
+    let mut global_handler = GlobalHandler {
+        quit_fn: &mut quit,
+    };
 
     let menu_titles = vec!["Dungeon", "Items", "Menu"];
     let mut active_menu_item = MenuItem::Dungeon;
     let mut pet_list_state = ListState::default();
     pet_list_state.select(Some(0));
 
-
-    // todo mutex for game state
+    let loop_terminal = terminal.clone();
     loop {
 
         let dungeon_view = DungeonView {};
+        let menu_view = MenuView {};
         let state = state.clone();
 
-        terminal.draw(|frame| {
+        loop_terminal.lock().unwrap().draw(|frame| {
             let size = frame.size();
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
@@ -170,7 +179,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             frame.render_widget(tabs, chunks[0]);
 
             match active_menu_item {
-                MenuItem::Dungeon => dungeon_view.render(frame, chunks[1], &state.lock().unwrap()).expect("To render"),
+                MenuItem::Dungeon => dungeon_view.render(frame, chunks[1], &state.lock().unwrap()).expect("To render Dungeon"),
                 MenuItem::Items => {
                     let pets_chunks = Layout::default()
                         .direction(Direction::Horizontal)
@@ -182,27 +191,33 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     frame.render_stateful_widget(left, pets_chunks[0], &mut pet_list_state);
                     frame.render_widget(right, pets_chunks[1]);
                 },
-                MenuItem::Menu => frame.render_widget(render_home(), chunks[1])
+                MenuItem::Menu => menu_view.render(frame, chunks[1], &state.lock().unwrap()).expect("To render Menu"),
             }
         })?;
+
 
         match rx.recv()? {
             Event::Input(event) => {
                 match event.code {
-                    KeyCode::Char('q') => {
-                        disable_raw_mode()?;
-                        terminal.show_cursor()?;
-                        break;
-                    }
                     KeyCode::Char('d') => active_menu_item = MenuItem::Dungeon,
                     KeyCode::Char('i') => active_menu_item = MenuItem::Items,
                     KeyCode::Char('m') => active_menu_item = MenuItem::Menu,
                     _ => {}
                 };
 
+                
+
                 match active_menu_item {
                     MenuItem::Dungeon => {
                         dungeon_view.handle_input(event.code);
+                    }
+                    MenuItem::Menu => {
+                        let res = menu_view.handle_input(event.code, &mut global_handler);
+                        if let Ok(should_continue) = res {
+                            if !should_continue {
+                                break;
+                            }
+                        }
                     }
                     _ => {}
                 };
@@ -212,35 +227,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
 
-    terminal.clear()?;
+    global_terminal.lock().unwrap().clear()?;
 
     Ok(())
 }
 
-fn render_home<'a>() -> Paragraph<'a> {
-    let home = Paragraph::new(vec![
-        Spans::from(vec![Span::raw("")]),
-        Spans::from(vec![Span::raw("Welcome")]),
-        Spans::from(vec![Span::raw("")]),
-        Spans::from(vec![Span::raw("to")]),
-        Spans::from(vec![Span::raw("")]),
-        Spans::from(vec![Span::styled(
-            "pet-CLI",
-            Style::default().fg(Color::LightBlue),
-        )]),
-        Spans::from(vec![Span::raw("")]),
-        Spans::from(vec![Span::raw("Press 'p' to access pets, 'a' to add random new pets and 'd' to delete the currently selected pet.")]),
-    ])
-    .alignment(Alignment::Center)
-    .block(
-        Block::default()
-            .borders(Borders::ALL)
-            .style(Style::default().fg(Color::White))
-            .title("Home")
-            .border_type(BorderType::Plain),
-    );
-    home
-}
 
 fn render_pets<'a>(pet_list_state: &ListState) -> (List<'a>, Table<'a>) {
     let pets = Block::default()
