@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use crate::levels::models::{ Level, Room, Item };
+use crate::models::models::{ Level, Room, Item };
 
 pub struct GameState {
     pub xp: u16,

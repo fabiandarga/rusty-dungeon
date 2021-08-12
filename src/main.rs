@@ -22,8 +22,8 @@ use tui::{
     Terminal,
 };
 
-mod levels;
-use crate::levels::models::{ Level, Room, Item };
+mod models;
+use crate::models::models::{ Level, Room, Item };
 
 mod data;
 use crate::data::GameData;

@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use crate::data::GameData;
 use crate::state::GameState;
-use crate::levels::models::RoomResult::{GainLevelPoints, GainXp, GainItem, GainSkill, StartFight};
+use crate::models::models::RoomResult::{GainLevelPoints, GainXp, GainItem, GainSkill, StartFight};
 
 pub struct GameHandler {
     game_data: GameData,

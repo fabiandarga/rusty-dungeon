@@ -41,22 +41,23 @@ impl ItemsView {
 
         self.list_length = game_state.owned_items.len();
 
-        let (left, right) = self.render_pets(&game_state.owned_items);
-        frame.render_stateful_widget(left, pets_chunks[0], &mut self.list_state);
-        frame.render_widget(right, pets_chunks[1]);
+
+        let list = self.build_item_list(&game_state.owned_items);
+        frame.render_stateful_widget(list, pets_chunks[0], &mut self.list_state.clone());
+
+        let details = self.build_item_detail(&game_state.owned_items);
+        frame.render_widget(details, pets_chunks[1]);
 
         Ok(())
     }
 
-    fn render_pets<'a>(&self, item_list: &Vec<Rc<Item>>) -> (List<'a>, Table<'a>) {
-        let pet_list_state = &self.list_state;
-
+    fn build_item_list(&self, item_list: &Vec<Rc<Item>>) -> List {
         let pets = Block::default()
-            .borders(Borders::ALL)
-            .style(Style::default().fg(Color::White))
-            .title("Pets")
-            .border_type(BorderType::Plain);
-    
+        .borders(Borders::ALL)
+        .style(Style::default().fg(Color::White))
+        .title("Pets")
+        .border_type(BorderType::Plain);
+
         let items: Vec<_> = item_list
             .iter()
             .map(|pet| {
@@ -67,23 +68,28 @@ impl ItemsView {
             })
             .collect();
     
-        let selected_pet = item_list
-            .get(
-                pet_list_state
-                    .selected()
-                    .expect("there is always a selected pet"),
-            )
-            .expect("exists") // todo .. two methods. render info if there is no item instead of panicking
-            .clone();
-    
-        let list = List::new(items).block(pets).highlight_style(
+        List::new(items).block(pets).highlight_style(
             Style::default()
                 .bg(Color::Yellow)
                 .fg(Color::Black)
                 .add_modifier(Modifier::BOLD),
-        );
+        )
+    }
+
+    fn build_item_detail(&self,  item_list: &Vec<Rc<Item>>) -> Table {
+        let pet_list_state = &self.list_state;
+
+        let selected_pet = item_list
+        .get(
+            pet_list_state
+                .selected()
+                .expect("there is always a selected pet"),
+        )
+        .expect("exists") // todo .. two methods. render info if there is no item instead of panicking
+        .clone();
+
     
-        let pet_detail = Table::new(vec![Row::new(vec![
+        Table::new(vec![Row::new(vec![
             Cell::from(Span::raw(selected_pet.name.to_string())),
             Cell::from(Span::raw(selected_pet.item_type.to_string())),
         ])])
@@ -107,12 +113,10 @@ impl ItemsView {
         .widths(&[
             Constraint::Percentage(20),
             Constraint::Percentage(80),
-        ]);
-    
-        (list, pet_detail)
+        ])
     }
 
-    pub fn handle_input(&mut self, key_code: KeyCode, game_handler: &mut GameHandler) -> Result<bool, Error> {
+    pub fn handle_input(&mut self, key_code: KeyCode, _game_handler: &mut GameHandler) -> Result<bool, Error> {
         let list_state = &mut self.list_state;
 
         match key_code {

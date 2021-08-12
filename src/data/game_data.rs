@@ -1,4 +1,4 @@
-use crate::levels::models::{ Level, Room, Item };
+use crate::models::models::{ Level, Room, Item };
 use std::rc::Rc;
 
 pub struct GameData {

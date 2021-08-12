@@ -2,7 +2,7 @@ use crate::GameHandler;
 use crate::Error;
 use tui::text::Spans;
 use tui::text::Span;
-use crate::levels::models::Choice;
+use crate::models::models::Choice;
 use tui::widgets::Wrap;
 use crate::GameState;
 use crossterm::event::KeyCode;
