@@ -1,3 +1,5 @@
+use crate::models::models::{ Reward, RewardType };
+use crate::state::DungeonState;
 use crate::Error;
 use std::sync::Mutex;
 use std::sync::Arc;
@@ -45,8 +47,10 @@ impl GameHandler {
 
         let choices = match &self.game_state.lock().unwrap().current_room {
             Some(room) => room.choices.clone(),
-            None => return Err(Error::GameDataError()),
+            None => return Err(Error::GameDataError(format!("Cant execute choices, no current room set."))),
         };
+
+        let mut rewards: Vec<Reward> = Vec::new();
 
         if choices.len() > index {
             let cons = &choices[index].consequences;
@@ -57,27 +61,57 @@ impl GameHandler {
                     },
                     GainXp(xp) => {
                         self.increase_xp(xp);
+
+                        rewards.push(Reward {
+                            reward_type: RewardType::Xp,
+                            name: "Experience Points".to_string(),
+                            amount: *xp as usize,
+                        });
                     },
                     GainItem(id) => {
-                        self.gain_item(id);
+                        self.gain_item(id)?;
+
+                        let item = self.game_data.find_item_by_id(*id)?;
+                        let name = item.name.to_owned();
+                        let item_type = item.item_type.clone();
+
+                        rewards.push(Reward {
+                            reward_type: RewardType::Item(item_type),
+                            name: name,
+                            amount: 1,
+                        });
                     },
-                    GainSkill(_id) => {},
+                    GainSkill(_id) => {
+                        // gain skill
+                        // let name = self.game_data.find_skill_by_id(*id)?.name.to_owned();
+                        // rewards.push(format!("{}", name))
+                    },
                     StartFight(_id) => {},
                 }
             }  
         }
 
+        if rewards.len() > 0 {
+            self.game_state.lock().unwrap().dungeon_state = DungeonState::Result;
+        }
+
+        self.game_state.lock().unwrap().last_rewards = rewards;
+        
         Ok(())
     }
 
-    pub fn gain_item(&mut self, id: &u16) {
-        let opt_item = self.game_data.find_item_by_id(*id);
-        match opt_item {
-            Some(item) => {
-                self.game_state.lock().unwrap().owned_items.push(item.clone());
-            }
-            None => {}
-        }
+    pub fn set_dungeon_state(&self, ds: DungeonState) {
+        self.game_state.lock().unwrap().dungeon_state = ds;
+    }
+
+    pub fn get_dungeon_state(&self) -> DungeonState {
+        self.game_state.lock().unwrap().dungeon_state.clone()
+    }
+
+    pub fn gain_item(&mut self, id: &u16) -> Result<(), Error>{
+        let item = self.game_data.find_item_by_id(*id)?;
+        self.game_state.lock().unwrap().owned_items.push(item.clone());
+        Ok(())
     }
 
     pub fn increase_level_points(&mut self, points: &u16) {

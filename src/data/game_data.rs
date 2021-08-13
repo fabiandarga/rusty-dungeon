@@ -1,3 +1,4 @@
+use crate::Error;
 use crate::models::models::{ Level, Room, Item };
 use std::rc::Rc;
 
@@ -16,8 +17,11 @@ impl GameData {
         }
     }
 
-    pub fn find_item_by_id(&self, item_id: u16) -> Option<&Rc<Item>> {
-        self.items.iter().find(|item| item.id == item_id)
+    pub fn find_item_by_id(&self, item_id: u16) -> Result<&Rc<Item>, Error> {
+        match self.items.iter().find(|item| item.id == item_id) {
+            Some(item) => Ok(item),
+            None => Err(Error::GameDataError(format!("Could not find item with id: {}", item_id))),
+        }
     }
 
     pub fn find_level_by_id(&self, level_id: u16) -> Option<&Rc<Level>> {

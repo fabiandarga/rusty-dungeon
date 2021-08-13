@@ -38,7 +38,6 @@ pub struct Level {
 
 #[derive(Serialize, Deserialize, Display, Clone)]
 pub enum ItemType {
-    Attribute,
     Weapon,
     Armor,
 }
@@ -48,4 +47,18 @@ pub struct Item {
     pub id: u16,
     pub name: String,
     pub item_type: ItemType,
+}
+
+#[derive(Clone)]
+pub enum RewardType {
+    Item(ItemType),
+    Skill,
+    Xp,
+}
+
+#[derive(Clone)]
+pub struct Reward {
+    pub reward_type: RewardType,
+    pub name: String,
+    pub amount: usize,
 }

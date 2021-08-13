@@ -1,10 +1,10 @@
+use crate::models::models::{ Reward, RewardType, Choice, ItemType };
 use crate::GameHandler;
 use crate::Error;
 use tui::text::Spans;
 use tui::text::Span;
-use crate::models::models::Choice;
 use tui::widgets::Wrap;
-use crate::GameState;
+use crate::state::{ GameState, DungeonState };
 use crossterm::event::KeyCode;
 
 use tui::{
@@ -21,7 +21,20 @@ use ::tui::backend::Backend;
 pub struct DungeonView {}
 
 impl DungeonView {
-    pub fn render(&self, frame: &mut Frame<impl Backend>, rect: Rect, game_state: &GameState) -> Result<(), String> {
+    pub fn render(&self, frame: &mut Frame<impl Backend>, rect: Rect, game_state: &GameState) -> Result<(), Error> {
+        match game_state.dungeon_state {
+            DungeonState::Room => {
+                self.render_room(frame, rect, game_state)?;
+            }
+            DungeonState::Result => {
+                self.render_result_screen(frame, rect, game_state);
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+
+    fn render_room(&self, frame: &mut Frame<impl Backend>, rect: Rect, game_state: &GameState) -> Result<(), Error> {
         let dungeon_chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints(
@@ -31,7 +44,7 @@ impl DungeonView {
 
         let room = match &game_state.current_room {
             Some(room) => room,
-            None => return Err("No Room found".to_string()),
+            None => return Err(Error::GameDataError("No Room found".to_string())),
         };
 
         frame.render_widget(self.build_title(&room.title), dungeon_chunks[0]);
@@ -39,6 +52,70 @@ impl DungeonView {
         frame.render_widget(self.build_choice_widget(&room.choices), dungeon_chunks[2]);
 
         Ok(())
+    }
+
+    fn render_result_screen(&self, frame: &mut Frame<impl Backend>, rect: Rect, game_state: &GameState) {
+        let dungeon_chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(
+            [Constraint::Min(2), Constraint::Length(5)].as_ref(),
+        )
+        .split(rect);
+
+
+        frame.render_widget(self.build_result_widget(&game_state.last_rewards), dungeon_chunks[0]);
+        frame.render_widget(self.build_confirm_widget(), dungeon_chunks[1]);
+    }
+
+    fn build_result_widget(&self, last_rewards: &Vec<Reward>) -> Paragraph {
+        let mut content: Vec<Spans> = Vec::new();
+
+        for reward in last_rewards {
+            let mut reward_text: Vec<Span> = Vec::new();
+            if reward.amount > 1 {
+                reward_text.push(Span::raw(format!("{} ", reward.amount)))
+            }
+            let color = match &reward.reward_type {
+                RewardType::Xp => Color::LightGreen,
+                RewardType::Item(it) => {
+                    match it {
+                        ItemType::Armor => Color::LightYellow,
+                        ItemType::Weapon => Color::LightRed,
+                    }
+                }
+                _ => Color::White,
+            };
+            reward_text.push(Span::styled(format!("{}", reward.name), Style::default().fg(color)));
+
+            content.push(Spans::from(reward_text));
+        }
+        
+        Paragraph::new(content)
+            .alignment(Alignment::Center)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .style(Style::default().fg(Color::White))
+                    .border_type(BorderType::Rounded),
+            )
+    }
+
+    fn build_confirm_widget(&self) -> Paragraph {
+        let content: Vec<Span> = vec![
+            Span::styled("[", Style::default().fg(Color::Yellow)),
+            Span::styled(format!("1"), Style::default().add_modifier(Modifier::BOLD)),
+            Span::styled("]", Style::default().fg(Color::Yellow)),
+            Span::raw(" OK")
+        ];
+
+        Paragraph::new(Spans::from(content))
+            .alignment(Alignment::Center)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .style(Style::default().fg(Color::White))
+                    .border_type(BorderType::Rounded),
+            )
     }
 
     fn build_title(&self, title: &str) -> Paragraph {
@@ -90,20 +167,34 @@ impl DungeonView {
     }
 
     pub fn handle_input(&mut self, key_code: KeyCode, game_handler: &mut GameHandler) -> Result<bool, Error> {
-        match key_code {
-            KeyCode::Char('1') => {
-                game_handler.execute_room_choice(0)?;
+        let state = game_handler.get_dungeon_state();
+        match state {
+            DungeonState::Room => {
+                match key_code {
+                    KeyCode::Char('1') => {
+                        game_handler.execute_room_choice(0)?;
+                    }
+                    KeyCode::Char('2') => {
+                        game_handler.execute_room_choice(1)?;
+                    }
+                    KeyCode::Char('3') => {
+                        game_handler.execute_room_choice(2)?;
+                    }
+                    KeyCode::Char('4') => {
+                        game_handler.execute_room_choice(3)?;
+                    }
+                    _ => {}
+                }
             }
-            KeyCode::Char('2') => {
-                game_handler.execute_room_choice(1)?;
+            DungeonState::Encounter => {}
+            DungeonState::Result => {
+                match key_code {
+                    KeyCode::Char('1') => {
+                        game_handler.set_dungeon_state(DungeonState::Room);
+                    }
+                    _ => {}
+                }
             }
-            KeyCode::Char('3') => {
-                game_handler.execute_room_choice(2)?;
-            }
-            KeyCode::Char('4') => {
-                game_handler.execute_room_choice(3)?;
-            }
-            _ => {}
         }
 
         Ok(true)

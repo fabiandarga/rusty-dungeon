@@ -8,5 +8,5 @@ pub enum Error {
     #[error("error parsing the DB file: {0}")]
     ParseDBError(#[from] serde_json::Error),
     #[error("error invalid game data")]
-    GameDataError(),
+    GameDataError(String),
 }
