@@ -24,12 +24,18 @@ impl GameData {
         }
     }
 
-    pub fn find_level_by_id(&self, level_id: u16) -> Option<&Rc<Level>> {
-        self.levels.iter().find(|level| level.id == level_id)
+    pub fn find_level_by_id(&self, level_id: u16) -> Result<&Rc<Level>, Error> {
+        match self.levels.iter().find(|level| level.id == level_id) {
+            Some(level) => Ok(level),
+            None => Err(Error::GameDataError(format!("Could not find level by id: {}", level_id)))
+        }
     }
 
 
-    pub fn find_room_by_id(&self, level_id: u16) -> Option<&Rc<Room>> {
-        self.rooms.iter().find(|room| room.id == level_id)
+    pub fn find_room_by_id(&self, room_id: u16) -> Result<&Rc<Room>, Error> {
+        match self.rooms.iter().find(|room| room.id == room_id) {
+            Some(room) => Ok(room),
+            None => Err(Error::GameDataError(format!("Could not find room with id: {}", room_id))),
+        }
     }
 }

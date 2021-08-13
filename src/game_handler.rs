@@ -4,6 +4,8 @@ use crate::Error;
 use std::sync::Mutex;
 use std::sync::Arc;
 
+use rand::prelude::*;
+
 use crate::data::GameData;
 use crate::state::GameState;
 use crate::models::models::RoomResult::{GainLevelPoints, GainXp, GainItem, GainSkill, StartFight};
@@ -18,29 +20,17 @@ impl GameHandler {
         GameHandler { game_data: game_data, game_state: game_state }
     }
 
-    pub fn start_game(&mut self) -> Result<(), String> {
-        let level = self.game_data.find_level_by_id(1);
-        match level {
-            Some(level) => {
-                let mut state = self.game_state.lock().unwrap();
+    pub fn start_game(&mut self) -> Result<(), Error> {
+        let level = self.game_data.find_level_by_id(1)?;
+        let mut state = self.game_state.lock().unwrap();
 
-                state.set_current_level(level);
+        state.set_current_level(level);
 
-                let room_id = level.first_room;
-                match self.game_data.find_room_by_id(room_id) {
-                    Some(room) => {
-                        state.set_current_room(room);
-                    }
-                    None => return Err(format!("Room {} not found in Data", room_id)),
-                }
+        let room_id = level.first_room;
+        let room = self.game_data.find_room_by_id(room_id)?;
+        state.set_current_room(room);
 
-            },
-            None => {
-                return Err(String::from("Level 1 not found in Data"))
-            }
-        };
-
-        return Ok(());
+        Ok(())
     }
 
     pub fn execute_room_choice(&mut self, index: usize) -> Result<(), Error> {
@@ -96,7 +86,55 @@ impl GameHandler {
         }
 
         self.game_state.lock().unwrap().last_rewards = rewards;
+
+        // check for levelPoints now and go to final room if needed.
+        let room_changed = self.enter_random_room()?;
+        if !room_changed {
+            self.enter_final_room()?;
+        }
+
+        Ok(())
+    }
+
+    pub fn enter_random_room(&self) -> Result<bool, Error> {
         
+        let opt_level = &self.game_state.lock().unwrap().current_level.clone();
+        match opt_level {
+            Some(level) => {
+                let amount = level.rooms.len();
+                if amount == 0 {
+                    return Ok(false);
+                }
+                let random = thread_rng().gen_range(0..amount);
+                let room_id = level.rooms[random];
+                self.set_current_room(room_id)?;
+            }
+            None => {
+                return Err(Error::GameDataError("No current level set.".to_string()));
+            }
+        }
+
+        Ok(true)
+    }
+
+    fn enter_final_room(&self) -> Result<(), Error>  {
+        let opt_level = &self.game_state.lock().unwrap().current_level.clone();
+        match opt_level {
+            Some(level) => {
+                let room_id = level.final_room;
+                self.set_current_room(room_id)?;
+            }
+            None => {
+                return Err(Error::GameDataError("No current level set.".to_string()));
+            }
+        }
+
+        Ok(())
+    }
+
+    fn set_current_room(&self, room_id: u16) -> Result<(), Error> {
+        let room = self.game_data.find_room_by_id(room_id)?;
+        self.game_state.lock().unwrap().set_current_room(room);
         Ok(())
     }
 
