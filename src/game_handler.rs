@@ -82,39 +82,48 @@ impl GameHandler {
         }
 
         if rewards.len() > 0 {
-            self.game_state.lock().unwrap().dungeon_state = DungeonState::Result;
+            self.change_dungeon_state(DungeonState::Result);
         }
 
         self.game_state.lock().unwrap().last_rewards = rewards;
 
-        // check for levelPoints now and go to final room if needed.
-        let room_changed = self.enter_random_room()?;
-        if !room_changed {
-            self.enter_final_room()?;
-        }
+        self.change_room()?;
 
         Ok(())
     }
 
-    pub fn enter_random_room(&self) -> Result<bool, Error> {
-        
-        let opt_level = &self.game_state.lock().unwrap().current_level.clone();
-        match opt_level {
-            Some(level) => {
-                let amount = level.rooms.len();
-                if amount == 0 {
-                    return Ok(false);
-                }
-                let random = thread_rng().gen_range(0..amount);
-                let room_id = level.rooms[random];
-                self.set_current_room(room_id)?;
-            }
-            None => {
-                return Err(Error::GameDataError("No current level set.".to_string()));
-            }
-        }
+    fn change_room(&self) -> Result<(), Error>  {
+        // check for levelPoints now and go to final room if needed.
+        let gs = self.game_state.lock().unwrap();
+        let level_points = gs.level_points;
+        let level = gs.get_current_level()?;
 
-        Ok(true)
+        drop(gs);
+        
+        if level.rooms.len() == 0 || level_points >= level.level_points {
+            self.enter_final_room()?;
+        } else {
+            self.enter_random_room()?;
+        }
+        
+        Ok(())
+    }
+
+    pub fn enter_random_room(&self) -> Result<(), Error> {
+        let level = &self.game_state.lock().unwrap().get_current_level()?;
+        let amount = level.rooms.len();
+        if amount == 0 {
+            return Err(Error::GameDataError("Trying to enter random room, but no rooms exist.".to_string()));
+        }
+        let random = thread_rng().gen_range(0..amount);
+        let room_id = level.rooms[random];
+        self.set_current_room(room_id)?;
+
+        Ok(())
+    }
+
+    pub fn change_dungeon_state(&self, state: DungeonState) {
+        self.game_state.lock().unwrap().dungeon_state = state;
     }
 
     fn enter_final_room(&self) -> Result<(), Error>  {

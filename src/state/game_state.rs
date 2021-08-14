@@ -1,3 +1,4 @@
+use crate::Error;
 use crate::models::models::Reward;
 use crate::state::DungeonState;
 use std::rc::Rc;
@@ -31,6 +32,15 @@ impl GameState {
 
     pub fn set_current_level(&mut self, level: &Rc<Level>) {
         self.current_level = Some(Rc::clone(level));        
+    }
+
+    pub fn get_current_level(&self) -> Result<Level, Error> {
+        match &self.current_level {
+            Some(level) => {
+                Ok((**level).clone())
+            },
+            None => Err(Error::GameDataError(format!("Trying to access empty current_level")))
+        }
     }
 
     pub fn set_current_room(&mut self, room: &Rc<Room>) {

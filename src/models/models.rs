@@ -31,7 +31,7 @@ pub struct Level {
     pub name: String,
     pub id: u16,
     pub rooms: Vec<u16>,
-    pub level_points: u8,
+    pub level_points: u16,
     pub first_room: u16,
     pub final_room: u16,
 }
