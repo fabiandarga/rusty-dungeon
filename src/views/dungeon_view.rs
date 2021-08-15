@@ -38,7 +38,7 @@ impl DungeonView {
         let dungeon_chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints(
-            [Constraint::Length(5), Constraint::Min(2), Constraint::Length(5)].as_ref(),
+            [Constraint::Length(3), Constraint::Min(2), Constraint::Length(5)].as_ref(),
         )
         .split(rect);
 

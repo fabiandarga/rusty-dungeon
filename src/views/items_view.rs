@@ -1,11 +1,12 @@
+use tui::widgets::Paragraph;
 use crossterm::event::KeyCode;
 use std::rc::Rc;
 
 use tui::{
     style::{ Style, Color, Modifier },
-    widgets::{ Block, BorderType, Borders, Table, Row, Cell, List, ListState, ListItem },
+    widgets::{ Block, BorderType, Borders, Table, Row, Cell, List, ListState, ListItem, },
     text::{ Span, Spans },
-    layout::{Layout, Direction, Constraint, Rect},
+    layout::{Layout, Direction, Constraint, Rect, Alignment },
     backend::Backend,
     Frame,
 };
@@ -32,12 +33,43 @@ impl ItemsView {
     }
 
     pub fn render(&mut self, frame: &mut Frame<impl Backend>, rect: Rect, game_state: &GameState) -> Result<(), String> {
+        if game_state.owned_items.len() > 0 {
+            self.render_item_list(frame, rect, game_state)?;
+        }
+        self.render_empty_message(frame, rect)?;
+
+        Ok(())
+    }
+
+    fn render_empty_message(&mut self, frame: &mut Frame<impl Backend>, rect: Rect) -> Result<(), String> {
+        let block = Block::default()
+            .borders(Borders::ALL)
+            .style(Style::default().fg(Color::White))
+            .title("Items")
+            .border_type(BorderType::Plain);
+
+        let message = Paragraph::new(Span::raw("No items, yet! Go to the dungeon to find some."))
+        .alignment(Alignment::Center);
+
+        frame.render_widget(block, rect);
+
+        let chunks = Layout::default()
+        .constraints([Constraint::Min(1)])
+        .margin(2)
+        .split(rect);
+
+        frame.render_widget(message, chunks[0]);
+
+        Ok(())
+    }
+
+    fn render_item_list(&mut self, frame: &mut Frame<impl Backend>, rect: Rect, game_state: &GameState) -> Result<(), String> {
         let pets_chunks = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints(
-                [Constraint::Percentage(20), Constraint::Percentage(80)].as_ref(),
-            )
-            .split(rect);
+        .direction(Direction::Horizontal)
+        .constraints(
+            [Constraint::Percentage(20), Constraint::Percentage(80)].as_ref(),
+        )
+        .split(rect);
 
         self.list_length = game_state.owned_items.len();
 
@@ -53,10 +85,10 @@ impl ItemsView {
 
     fn build_item_list(&self, item_list: &Vec<Rc<Item>>) -> List {
         let pets = Block::default()
-        .borders(Borders::ALL)
-        .style(Style::default().fg(Color::White))
-        .title("Pets")
-        .border_type(BorderType::Plain);
+            .borders(Borders::ALL)
+            .style(Style::default().fg(Color::White))
+            .title("Items")
+            .border_type(BorderType::Plain);
 
         let items: Vec<_> = item_list
             .iter()
