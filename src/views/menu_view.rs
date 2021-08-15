@@ -1,3 +1,4 @@
+use crate::GameHandler;
 use tui::text::Span;
 use tui::text::Spans;
 use tui::widgets::{Paragraph, Wrap, Block, Borders, BorderType};
@@ -18,6 +19,10 @@ impl MenuView {
         let content = vec![
             Spans::from(vec![
                 Span::styled("Menu", Style::default().add_modifier(Modifier::BOLD))
+            ]),
+            Spans::from(vec![
+                Span::styled("[r]", Style::default().fg(Color::Cyan)),
+                Span::raw(" Reset Game"),
             ]),
             Spans::from(vec![
                 Span::styled("[q]", Style::default().fg(Color::Cyan)),
@@ -44,13 +49,17 @@ impl MenuView {
 
 
     pub fn handle_input(
-        &self, key_code: KeyCode, global_handlers: &mut GlobalHandler)
+        &self, key_code: KeyCode, game_handler: &mut GameHandler, global_handlers: &mut GlobalHandler)
         -> Result<bool, Error> {
 
         match key_code {
             KeyCode::Char('q') => {
                 global_handlers.quit()?;
                 return Ok(false);
+            }
+            KeyCode::Char('r') => {
+                // todo needs game_handler
+                game_handler.reset_game()?;
             }
             _ => {}
         }

@@ -79,12 +79,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let items: Vec<Item> = read_item_db().expect("can fetch items data");
 
     let game_data = GameData::new(levels, rooms, items);
-    let state = Arc::new(Mutex::new(GameState::new()));
 
-    let game_handler = Arc::new(Mutex::new(GameHandler::new(game_data, state.clone())));
+    let game_handler = Arc::new(Mutex::new(GameHandler::new(game_data)));
+
 
     let mut main_game_handler = game_handler.lock().unwrap();
     main_game_handler.start_game().expect("Can start game");
+    let state = main_game_handler.get_game_state_clone();
     drop(main_game_handler);
 
     enable_raw_mode().expect("can run in raw mode");
@@ -221,7 +222,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         character_view.handle_input(event.code, &mut loop_game_handler.lock().unwrap())?;
                     },
                     MenuItem::Menu => {
-                        let res = menu_view.handle_input(event.code, &mut global_handler);
+                        let res = menu_view.handle_input(event.code, &mut loop_game_handler.lock().unwrap(), &mut global_handler);
                         if let Ok(should_continue) = res {
                             if !should_continue {
                                 break;

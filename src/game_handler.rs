@@ -16,8 +16,9 @@ pub struct GameHandler {
 }
 
 impl GameHandler {
-    pub fn new(game_data: GameData, game_state: Arc<Mutex<GameState>>) -> GameHandler {
-        GameHandler { game_data: game_data, game_state: game_state }
+    pub fn new(game_data: GameData) -> GameHandler {
+        let state = Arc::new(Mutex::new(GameState::new()));
+        GameHandler { game_data: game_data, game_state: state }
     }
 
     pub fn start_game(&mut self) -> Result<(), Error> {
@@ -30,6 +31,14 @@ impl GameHandler {
         let room = self.game_data.find_room_by_id(room_id)?;
         state.set_current_room(room);
 
+        Ok(())
+    }
+
+    pub fn reset_game(&mut self) -> Result<(), Error> {
+        let mut state = self.game_state.lock().expect("Could not lock game_State");
+        *state = GameState::new();
+        drop(state);
+        self.start_game()?;
         Ok(())
     }
 
@@ -99,7 +108,7 @@ impl GameHandler {
         let level = gs.get_current_level()?;
 
         drop(gs);
-        
+
         if level.rooms.len() == 0 || level_points >= level.level_points {
             self.enter_final_room()?;
         } else {
@@ -139,6 +148,10 @@ impl GameHandler {
         }
 
         Ok(())
+    }
+
+    pub fn get_game_state_clone(&self) -> Arc<Mutex<GameState>> {
+        self.game_state.clone()
     }
 
     fn set_current_room(&self, room_id: u16) -> Result<(), Error> {
