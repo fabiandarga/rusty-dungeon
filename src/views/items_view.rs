@@ -16,6 +16,8 @@ use crate::GameHandler;
 use crate::GameState;
 use crate::Item;
 
+use crate::views::components::MessageBlock;
+
 pub struct ItemsView {
     list_state: ListState,
     list_length: usize,
@@ -35,51 +37,58 @@ impl ItemsView {
     pub fn render(&mut self, frame: &mut Frame<impl Backend>, rect: Rect, game_state: &GameState) -> Result<(), String> {
         if game_state.owned_items.len() > 0 {
             self.render_item_list(frame, rect, game_state)?;
+        } else {
+            self.render_empty_message(frame, rect)?;
         }
-        self.render_empty_message(frame, rect)?;
 
         Ok(())
     }
 
     fn render_empty_message(&mut self, frame: &mut Frame<impl Backend>, rect: Rect) -> Result<(), String> {
-        let block = Block::default()
-            .borders(Borders::ALL)
-            .style(Style::default().fg(Color::White))
-            .title("Items")
-            .border_type(BorderType::Plain);
-
-        let message = Paragraph::new(Span::raw("No items, yet! Go to the dungeon to find some."))
-        .alignment(Alignment::Center);
-
-        frame.render_widget(block, rect);
-
-        let chunks = Layout::default()
-        .constraints([Constraint::Min(1)])
-        .margin(2)
-        .split(rect);
-
-        frame.render_widget(message, chunks[0]);
+        let message_block = MessageBlock::new(
+            "Items",
+            Span::raw("No items, yet! Go to the dungeon to find some."));
+       
+        frame.render_widget(message_block, rect);
 
         Ok(())
     }
 
     fn render_item_list(&mut self, frame: &mut Frame<impl Backend>, rect: Rect, game_state: &GameState) -> Result<(), String> {
-        let pets_chunks = Layout::default()
+        let layout_chunks = Layout::default()
         .direction(Direction::Horizontal)
         .constraints(
             [Constraint::Percentage(20), Constraint::Percentage(80)].as_ref(),
         )
         .split(rect);
 
+        let right_chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(
+            [Constraint::Percentage(50), Constraint::Percentage(50)].as_ref(),
+        )
+        .split(layout_chunks[1]);
+
         self.list_length = game_state.owned_items.len();
 
 
         let list = self.build_item_list(&game_state.owned_items);
-        frame.render_stateful_widget(list, pets_chunks[0], &mut self.list_state.clone());
+        frame.render_stateful_widget(list, layout_chunks[0], &mut self.list_state.clone());
 
         let details = self.build_item_detail(&game_state.owned_items);
-        frame.render_widget(details, pets_chunks[1]);
+        frame.render_widget(details, right_chunks[0]);
 
+
+        if game_state.equipped_items.len() > 0 {
+            let equipped = self.build_equipped_items(&game_state.equipped_items);
+            frame.render_widget(equipped, right_chunks[1]);    
+        } else {
+            let message_block = MessageBlock::new(
+                "Equipment",
+                Span::raw("No items equipped!"));
+            frame.render_widget(message_block, right_chunks[1]);    
+        }
+        
         Ok(())
     }
 
@@ -109,11 +118,11 @@ impl ItemsView {
     }
 
     fn build_item_detail(&self,  item_list: &Vec<Rc<Item>>) -> Table {
-        let pet_list_state = &self.list_state;
+        let list_state = &self.list_state;
 
-        let selected_pet = item_list
+        let selected_item = item_list
         .get(
-            pet_list_state
+            list_state
                 .selected()
                 .expect("there is always a selected pet"),
         )
@@ -121,10 +130,7 @@ impl ItemsView {
         .clone();
 
     
-        Table::new(vec![Row::new(vec![
-            Cell::from(Span::raw(selected_pet.name.to_string())),
-            Cell::from(Span::raw(selected_pet.item_type.to_string())),
-        ])])
+        Table::new(vec![self.build_item_row(&selected_item)])
         .header(Row::new(vec![
             Cell::from(Span::styled(
                 "Name",
@@ -148,7 +154,41 @@ impl ItemsView {
         ])
     }
 
-    pub fn handle_input(&mut self, key_code: KeyCode, _game_handler: &mut GameHandler) -> Result<bool, Error> {
+    fn build_equipped_items(&self, item_list: &Vec<Rc<Item>>) -> Table {
+        let rows: Vec<Row> = item_list.iter().map(|item| self.build_item_row(item)).collect();
+
+        Table::new(rows)
+        .header(Row::new(vec![
+            Cell::from(Span::styled(
+                "Name",
+                Style::default().add_modifier(Modifier::BOLD),
+            )),
+            Cell::from(Span::styled(
+                "Category",
+                Style::default().add_modifier(Modifier::BOLD),
+            )),
+        ]))
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .style(Style::default().fg(Color::White))
+                .title("Equipment")
+                .border_type(BorderType::Plain),
+        )
+        .widths(&[
+            Constraint::Percentage(20),
+            Constraint::Percentage(80),
+        ])
+    }
+
+    fn build_item_row(&self, item: &Item) -> Row {
+        Row::new(vec![
+            Cell::from(Span::raw(item.name.to_string())),
+            Cell::from(Span::raw(item.item_type.to_string())),
+        ])
+    }
+
+    pub fn handle_input(&mut self, key_code: KeyCode, game_handler: &mut GameHandler) -> Result<bool, Error> {
         let list_state = &mut self.list_state;
 
         match key_code {
@@ -170,6 +210,11 @@ impl ItemsView {
                     } else {
                         list_state.select(Some(amount_pets - 1));
                     }
+                }
+            }
+            KeyCode::Char('e') => {
+                if let Some(selected) = list_state.selected() {
+                    game_handler.equip_item_by_index(selected)?;
                 }
             }
             _ => {}

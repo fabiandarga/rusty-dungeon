@@ -9,7 +9,7 @@ use std::boxed::Box;
 use thiserror::Error;
 
 use crossterm::{
-    event::{self, Event as CEvent, KeyCode},
+    event::{self, Event as CEvent, KeyCode, KeyModifiers},
     terminal::{disable_raw_mode, enable_raw_mode},
 };
 
@@ -152,7 +152,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let size = frame.size();
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
-                .margin(3)
+                .horizontal_margin(3)
+                .vertical_margin(1)
                 .constraints(
                     [
                         Constraint::Length(3),
@@ -208,9 +209,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Event::Input(event) => {
                 match event.code {
                     KeyCode::Char('d') => active_menu_item = MenuItem::Dungeon,
-                    KeyCode::Char('c') => active_menu_item = MenuItem::Character,
                     KeyCode::Char('i') => active_menu_item = MenuItem::Items,
                     KeyCode::Char('m') => active_menu_item = MenuItem::Menu,
+                    KeyCode::Char('c') => {
+                        if event.modifiers.contains(KeyModifiers::CONTROL) {
+                            break; // Break the ui loop
+                        } else {
+                            active_menu_item = MenuItem::Character
+                        }
+                     }
                     _ => {}
                 };
 

@@ -36,7 +36,7 @@ pub struct Level {
     pub final_room: u16,
 }
 
-#[derive(Serialize, Deserialize, Display, Clone)]
+#[derive(Serialize, Deserialize, Display, Clone, PartialEq)]
 pub enum ItemType {
     Weapon,
     Armor,

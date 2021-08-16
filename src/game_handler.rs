@@ -181,4 +181,46 @@ impl GameHandler {
     pub fn increase_xp(&mut self, points: &u16) {
         self.game_state.lock().unwrap().xp += points;
     }
+
+    pub fn equip_item_by_index(&self, index: usize) -> Result<(), Error>{
+        let id = match self.game_state.lock().unwrap().owned_items.get(index) {
+            Some(item) => item.id,
+            _ => return Err(Error::GameDataError(format!("Can not equip item with index {}", index))),
+        };
+
+        self.equip_item(id)?;
+
+        Ok(())
+    }
+
+    pub fn equip_item(&self, item_id: u16) -> Result<(), Error>{
+        if self.has_item(item_id) {
+            // check type. To replace equipped item of that type. 
+            let item = self.game_data.find_item_by_id(item_id)?;
+            let mut gs = self.game_state.lock().unwrap();
+            let old_item_index = gs.equipped_items.iter()
+                .position(|old_item| old_item.item_type == item.item_type);
+
+            match old_item_index {
+                Some(index) => {
+                    gs.equipped_items.remove(index);
+                }
+                None => {}
+            }
+
+            gs.equipped_items.push(item.clone());
+            return Ok(());
+        }
+        Err(Error::GameDataError("Trying to equip item not owned".to_string()))
+    }
+
+    pub fn has_item(&self, item_id: u16) -> bool {
+        let first_index = self.game_state.lock().unwrap()
+            .owned_items.iter()
+            .position(|item| item.id == item_id);
+        match first_index {
+            Some(_index) => true,
+            None => false,
+        }
+    }
 }
