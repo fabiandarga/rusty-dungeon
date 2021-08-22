@@ -2,7 +2,7 @@ use crate::Error;
 use crate::models::models::Reward;
 use crate::state::DungeonState;
 use std::rc::Rc;
-use crate::models::models::{ Level, Room, Item };
+use crate::models::models::{ Level, Room, Item, Skill };
 
 
 pub struct GameState {
@@ -14,6 +14,7 @@ pub struct GameState {
     pub owned_items: Vec<Rc<Item>>,
     pub equipped_items: Vec<Rc<Item>>,
     pub last_rewards: Vec<Reward>,
+    pub gained_skills: Vec<Rc<Skill>>
 }
 
 impl GameState {
@@ -27,6 +28,7 @@ impl GameState {
             owned_items: Vec::new(),
             equipped_items: Vec::new(),
             last_rewards: Vec::new(),
+            gained_skills: Vec::new(),
         }
     }
 

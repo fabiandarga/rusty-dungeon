@@ -23,7 +23,7 @@ use tui::{
 };
 
 mod models;
-use crate::models::models::{ Level, Room, Item };
+use crate::models::models::{ Level, Room, Item, Skill };
 
 mod data;
 use crate::data::GameData;
@@ -46,6 +46,7 @@ use crate::errors::Error;
 const ITEMS_PATH: &str = "./data/items.json";
 const ROOMS_PATH: &str = "./data/rooms.json";
 const LEVEL_PATH: &str = "./data/levels.json";
+const SKILL_PATH: &str = "./data/skills.json";
 
 enum Event<I> {
     Input(I),
@@ -77,8 +78,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let levels: Vec<Level> = read_level_db().expect("can fetch level data");
     let rooms: Vec<Room> = read_room_db().expect("can fetch rooms data");
     let items: Vec<Item> = read_item_db().expect("can fetch items data");
+    let skills: Vec<Skill> = read_skill_db().expect("can fetch skills data");
 
-    let game_data = GameData::new(levels, rooms, items);
+    let game_data = GameData::new(levels, rooms, items, skills);
 
     let game_handler = Arc::new(Mutex::new(GameHandler::new(game_data)));
 
@@ -267,5 +269,11 @@ fn read_level_db() -> Result<Vec<Level>, Error> {
 fn read_room_db() -> Result<Vec<Room>, Error> {
     let db_content = fs::read_to_string(ROOMS_PATH)?;
     let parsed: Vec<Room> = serde_json::from_str(&db_content)?;
+    Ok(parsed)
+}
+
+fn read_skill_db() -> Result<Vec<Skill>, Error> {
+    let db_content = fs::read_to_string(SKILL_PATH)?;
+    let parsed: Vec<Skill> = serde_json::from_str(&db_content)?;
     Ok(parsed)
 }

@@ -49,6 +49,24 @@ pub struct Item {
     pub item_type: ItemType,
 }
 
+#[derive(Serialize, Deserialize, Display, Clone, PartialEq)]
+#[serde(tag = "t", content = "c")]
+pub enum SkillModifier {
+    AbilityStr(u8),
+    AbilityAgil(u8),
+    LPIncrease(u8),
+    XPIncrease(u8),
+    DropChance(u8),
+    CritChance(u8),
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Skill {
+    pub id: u16,
+    pub name: String,
+    pub modifiers: Vec<SkillModifier>,
+}
+
 #[derive(Clone)]
 pub enum RewardType {
     Item(ItemType),

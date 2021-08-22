@@ -1,19 +1,21 @@
 use crate::Error;
-use crate::models::models::{ Level, Room, Item };
+use crate::models::models::{ Level, Room, Item, Skill };
 use std::rc::Rc;
 
 pub struct GameData {
     levels: Vec<Rc<Level>>,
     rooms: Vec<Rc<Room>>,
     items: Vec<Rc<Item>>,
+    skills: Vec<Rc<Skill>>,
 }
 
 impl GameData {
-    pub fn new(levels: Vec<Level>, rooms: Vec<Room>, items:Vec<Item>) -> GameData {
+    pub fn new(levels: Vec<Level>, rooms: Vec<Room>, items:Vec<Item>, skills: Vec<Skill>) -> GameData {
         GameData {
             levels: levels.iter().map(|level| Rc::new(level.clone())).collect(),
             rooms: rooms.iter().map(|room| Rc::new(room.clone())).collect(),
             items: items.iter().map(|item| Rc::new(item.clone())).collect(),
+            skills: skills.iter().map(|item| Rc::new(item.clone())).collect(),
         }
     }
 
@@ -36,6 +38,13 @@ impl GameData {
         match self.rooms.iter().find(|room| room.id == room_id) {
             Some(room) => Ok(room),
             None => Err(Error::GameDataError(format!("Could not find room with id: {}", room_id))),
+        }
+    }
+
+    pub fn find_skill_by_id(&self, skill_id: u16) -> Result<&Rc<Skill>, Error> {
+        match self.skills.iter().find(|skill| skill.id == skill_id) {
+            Some(skill) => Ok(skill),
+            None => Err(Error::GameDataError(format!("Could not find skill with id: {}", skill_id)))
         }
     }
 }

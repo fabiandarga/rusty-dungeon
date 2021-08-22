@@ -71,19 +71,27 @@ impl GameHandler {
                         self.gain_item(id)?;
 
                         let item = self.game_data.find_item_by_id(*id)?;
-                        let name = item.name.to_owned();
                         let item_type = item.item_type.clone();
 
                         rewards.push(Reward {
                             reward_type: RewardType::Item(item_type),
-                            name: name,
+                            name: item.name.to_owned(),
                             amount: 1,
                         });
                     },
-                    GainSkill(_id) => {
+                    GainSkill(id) => {
                         // gain skill
-                        // let name = self.game_data.find_skill_by_id(*id)?.name.to_owned();
-                        // rewards.push(format!("{}", name))
+                        let gained = self.gain_skill_once(id)?;
+
+                        if gained {
+                            let skill = self.game_data.find_skill_by_id(*id)?;
+
+                            rewards.push(Reward {
+                                reward_type: RewardType::Skill,
+                                name: skill.name.to_owned(),
+                                amount: 1,
+                            });
+                        }
                     },
                     StartFight(_id) => {},
                 }
@@ -168,10 +176,21 @@ impl GameHandler {
         self.game_state.lock().unwrap().dungeon_state.clone()
     }
 
-    pub fn gain_item(&mut self, id: &u16) -> Result<(), Error>{
+    pub fn gain_item(&mut self, id: &u16) -> Result<(), Error> {
         let item = self.game_data.find_item_by_id(*id)?;
         self.game_state.lock().unwrap().owned_items.push(item.clone());
         Ok(())
+    }
+
+    pub fn gain_skill_once(&mut self, id: &u16) -> Result<bool, Error> {
+        let skill = self.game_data.find_skill_by_id(*id)?;
+        let mut gs = self.game_state.lock().unwrap();
+        if !gs.gained_skills.iter().any(|skill| &skill.id == id) {
+            gs.gained_skills.push(skill.clone());
+            return Ok(true);
+        }
+
+        Ok(false)
     }
 
     pub fn increase_level_points(&mut self, points: &u16) {
@@ -182,7 +201,7 @@ impl GameHandler {
         self.game_state.lock().unwrap().xp += points;
     }
 
-    pub fn equip_item_by_index(&self, index: usize) -> Result<(), Error>{
+    pub fn equip_item_by_index(&self, index: usize) -> Result<(), Error> {
         let id = match self.game_state.lock().unwrap().owned_items.get(index) {
             Some(item) => item.id,
             _ => return Err(Error::GameDataError(format!("Can not equip item with index {}", index))),

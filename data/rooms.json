@@ -19,7 +19,9 @@
         "text": "Do something",
         "choices": [
             {"text": "left", "consequences": [
-                { "t": "GainLevelPoints", "c": 100 }
+                { "t": "GainLevelPoints", "c": 100 },
+                { "t": "GainItem", "c": 2 },
+                { "t": "GainItem", "c": 3 }
             ]},
             {"text": "right", "consequences": [
                 { "t": "GainXp", "c": 30 }

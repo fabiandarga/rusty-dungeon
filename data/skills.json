@@ -1,0 +1,16 @@
+[
+    {
+        "id": 1,
+        "name": "Strong",
+        "modifiers": [
+            { "t": "AbilityStr", "c": 3 }
+        ]
+    },
+    {
+        "id": 2,
+        "name": "Skilled Fighter",
+        "modifiers": [
+            { "t": "CritChance", "c": 5 }
+        ]
+    }
+]

@@ -176,8 +176,8 @@ impl ItemsView {
                 .border_type(BorderType::Plain),
         )
         .widths(&[
-            Constraint::Percentage(20),
-            Constraint::Percentage(80),
+            Constraint::Length(20),
+            Constraint::Min(20),
         ])
     }
 
