@@ -1,4 +1,4 @@
-use crate::models::models::{ Reward, RewardType };
+use crate::models::models::{ Reward, RewardType, Ability, BadResult, BadResultType };
 use crate::state::DungeonState;
 use crate::Error;
 use std::sync::Mutex;
@@ -8,7 +8,9 @@ use rand::prelude::*;
 
 use crate::data::GameData;
 use crate::state::GameState;
-use crate::models::models::RoomResult::{GainLevelPoints, GainXp, GainItem, GainSkill, StartFight};
+use crate::models::models::RoomResult::*;
+
+use crate::random::ability_check_with_nd6;
 
 pub struct GameHandler {
     game_data: GameData,
@@ -50,6 +52,7 @@ impl GameHandler {
         };
 
         let mut rewards: Vec<Reward> = Vec::new();
+        let mut bad_results: Vec<BadResult> = Vec::new();
 
         if choices.len() > index {
             let cons = &choices[index].consequences;
@@ -94,6 +97,20 @@ impl GameHandler {
                         }
                     },
                     StartFight(_id) => {},
+                    AbilityCheck(ability, dificulty) => {
+                        let success = self.ability_check(ability.clone(), *dificulty)?;
+                        if !success {
+                            let damage = self.recive_damage(*dificulty);
+                            bad_results.push(BadResult {
+                                bad_result_type: BadResultType::Damage,
+                                name: "Damage".to_string(),
+                                amount: damage.into(),
+                            });
+
+                            self.change_dungeon_state(DungeonState::Failure);
+                            break;
+                        }
+                    },
                 }
             }  
         }
@@ -102,11 +119,21 @@ impl GameHandler {
             self.change_dungeon_state(DungeonState::Result);
         }
 
-        self.game_state.lock().unwrap().last_rewards = rewards;
+        let mut gs = self.game_state.lock().unwrap();
+
+        gs.last_bad_results = bad_results;
+        gs.last_rewards = rewards;
+        drop(gs);
 
         self.change_room()?;
 
         Ok(())
+    }
+
+    fn ability_check(&self, ability: Ability, dificulty: u8) -> Result<bool, Error> {
+        let character = self.game_state.lock().unwrap().character.clone();
+        let success = ability_check_with_nd6(character, ability, dificulty);
+        Ok(success)
     }
 
     fn change_room(&self) -> Result<(), Error>  {
@@ -174,6 +201,22 @@ impl GameHandler {
 
     pub fn get_dungeon_state(&self) -> DungeonState {
         self.game_state.lock().unwrap().dungeon_state.clone()
+    }
+
+    pub fn recive_damage(&self, dificulty: u8) -> u16 {
+        // TODO extract hardcoded ranges
+        let range = match dificulty {
+            1 | 2 => 0..=10,
+            3 => 8..=20,
+            4 => 15..=30,
+            _ => 20..=50,
+        };
+
+        let random_dmg = thread_rng().gen_range(range);
+
+        self.game_state.lock().unwrap().remove_hp(random_dmg);
+
+        random_dmg
     }
 
     pub fn gain_item(&mut self, id: &u16) -> Result<(), Error> {

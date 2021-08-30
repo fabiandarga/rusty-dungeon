@@ -3,7 +3,7 @@
         "id": 1,
         "name": "Strong",
         "modifiers": [
-            { "t": "AbilityStr", "c": 3 }
+            { "t": "AbilityMulti", "c": ["Strg", 3] }
         ]
     },
     {

@@ -3,4 +3,5 @@ pub enum DungeonState {
     Room,
     Encounter,
     Result,
+    Failure,
 }

@@ -43,6 +43,8 @@ use crate::views::{ DungeonView, MenuView, CharacterView, ItemsView };
 mod errors;
 use crate::errors::Error;
 
+mod random;
+
 const ITEMS_PATH: &str = "./data/items.json";
 const ROOMS_PATH: &str = "./data/rooms.json";
 const LEVEL_PATH: &str = "./data/levels.json";

@@ -1,4 +1,3 @@
-use tui::widgets::Paragraph;
 use crossterm::event::KeyCode;
 use std::rc::Rc;
 
@@ -6,7 +5,7 @@ use tui::{
     style::{ Style, Color, Modifier },
     widgets::{ Block, BorderType, Borders, Table, Row, Cell, List, ListState, ListItem, },
     text::{ Span, Spans },
-    layout::{Layout, Direction, Constraint, Rect, Alignment },
+    layout::{Layout, Direction, Constraint, Rect },
     backend::Backend,
     Frame,
 };

@@ -2,7 +2,7 @@ use crate::Error;
 use crate::models::models::Reward;
 use crate::state::DungeonState;
 use std::rc::Rc;
-use crate::models::models::{ Level, Room, Item, Skill };
+use crate::models::models::{ Level, Room, Item, Skill, Character, BadResult };
 
 
 pub struct GameState {
@@ -13,12 +13,19 @@ pub struct GameState {
     pub current_room: Option<Rc<Room>>,
     pub owned_items: Vec<Rc<Item>>,
     pub equipped_items: Vec<Rc<Item>>,
+    pub gained_skills: Vec<Rc<Skill>>,
+    pub character: Character,
     pub last_rewards: Vec<Reward>,
-    pub gained_skills: Vec<Rc<Skill>>
+    pub last_bad_results: Vec<BadResult>,
 }
 
 impl GameState {
     pub fn new() -> GameState {
+        let mut character = Character::default();
+        character.strg = 2;
+        character.agil = 2;
+        character.def = 2;
+
         GameState {
             xp: 0,
             level_points: 0,
@@ -27,8 +34,10 @@ impl GameState {
             current_room: None,
             owned_items: Vec::new(),
             equipped_items: Vec::new(),
-            last_rewards: Vec::new(),
             gained_skills: Vec::new(),
+            character,
+            last_rewards: Vec::new(),
+            last_bad_results: Vec::new(),
         }
     }
 
@@ -47,6 +56,14 @@ impl GameState {
 
     pub fn set_current_room(&mut self, room: &Rc<Room>) {
         self.current_room = Some(Rc::clone(room));
+    }
+
+    pub fn remove_hp(&mut self, hp: u16) {
+        if self.character.hp < hp {
+            self.character.hp = 0;
+        } else {
+            self.character.hp -= hp
+        }
     }
 }
 

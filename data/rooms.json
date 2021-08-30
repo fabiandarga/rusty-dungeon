@@ -9,21 +9,22 @@
                 { "t": "GainItem", "c": 1 }
             ]},
             {"text": "right", "consequences": [
-                { "t": "GainSkill", "c": 1 }
+                { "t": "GainXp", "c": 50 },
+                { "t": "GainItem", "c": 1 }
             ]}
         ]
     },
     {
         "id": 2,
         "title": "Your Average Room",
-        "text": "Do something",
+        "text": "The room is split in half. You stand in front of a 3 meter deep and wide gap. On the wall next to it there some knobs.",
         "choices": [
-            {"text": "left", "consequences": [
-                { "t": "GainLevelPoints", "c": 100 },
-                { "t": "GainItem", "c": 2 },
-                { "t": "GainItem", "c": 3 }
+            {"text": "Jump the gap", "consequences": [
+                { "t": "AbilityCheck", "c": ["Agil", 2] },
+                { "t": "GainXp", "c": 30 }
             ]},
             {"text": "right", "consequences": [
+                { "t": "AbilityCheck", "c": ["Strg", 2] },
                 { "t": "GainXp", "c": 30 }
             ]}
         ]

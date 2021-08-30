@@ -1,4 +1,4 @@
-use crate::models::models::{ Reward, RewardType, Choice, ItemType };
+use crate::models::models::{ Reward, RewardType, Choice, ItemType, BadResult, BadResultType };
 use crate::GameHandler;
 use crate::Error;
 use tui::text::Spans;
@@ -28,6 +28,9 @@ impl DungeonView {
             }
             DungeonState::Result => {
                 self.render_result_screen(frame, rect, game_state);
+            }
+            DungeonState::Failure => {
+                self.render_failure_screen(frame, rect, game_state);
             }
             _ => {}
         }
@@ -62,9 +65,30 @@ impl DungeonView {
         )
         .split(rect);
 
-
         frame.render_widget(self.build_result_widget(&game_state.last_rewards), dungeon_chunks[0]);
         frame.render_widget(self.build_confirm_widget(), dungeon_chunks[1]);
+    }
+
+    fn render_failure_screen(&self, frame: &mut Frame<impl Backend>, rect:Rect, game_state: &GameState) {
+        let dungeon_chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(
+            [Constraint::Length(3), Constraint::Min(2), Constraint::Length(5)].as_ref(),
+        )
+        .split(rect);
+
+        let title = Paragraph::new("You failed!")
+            .alignment(Alignment::Center)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .style(Style::default().fg(Color::White))
+                    .border_type(BorderType::Rounded),
+            );
+
+        frame.render_widget(title, dungeon_chunks[0]);
+        frame.render_widget(self.build_failure_widget(&game_state.last_bad_results), dungeon_chunks[1]);
+        frame.render_widget(self.build_confirm_widget(), dungeon_chunks[2]);
     }
 
     fn build_result_widget(&self, last_rewards: &Vec<Reward>) -> Paragraph {
@@ -98,6 +122,34 @@ impl DungeonView {
                     .style(Style::default().fg(Color::White))
                     .border_type(BorderType::Rounded),
             )
+    }
+
+    fn build_failure_widget(&self, last_bad_results: &Vec<BadResult>) -> Paragraph {
+        let mut content: Vec<Spans> = Vec::new();
+
+        for result in last_bad_results {
+            let mut text: Vec<Span> = Vec::new();
+            if result.amount > 1 {
+                text.push(Span::raw(format!("{} ", result.amount)))
+            }
+            let color = match &result.bad_result_type {
+                BadResultType::Damage => Color::LightRed,
+                _ => Color::White,
+            };
+            text.push(Span::styled(format!("{}", result.name), Style::default().fg(color)));
+
+            content.push(Spans::from(text));
+        }
+
+        Paragraph::new(content)
+            .alignment(Alignment::Center)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .style(Style::default().fg(Color::White))
+                    .border_type(BorderType::Rounded),
+            )
+
     }
 
     fn build_confirm_widget(&self) -> Paragraph {
@@ -187,7 +239,7 @@ impl DungeonView {
                 }
             }
             DungeonState::Encounter => {}
-            DungeonState::Result => {
+            DungeonState::Result | DungeonState::Failure => {
                 match key_code {
                     KeyCode::Char('1') => {
                         game_handler.set_dungeon_state(DungeonState::Room);
