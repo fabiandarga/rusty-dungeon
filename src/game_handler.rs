@@ -241,7 +241,7 @@ impl GameHandler {
     }
 
     pub fn increase_xp(&mut self, points: &u16) {
-        self.game_state.lock().unwrap().xp += points;
+        self.game_state.lock().unwrap().character.xp += points;
     }
 
     pub fn equip_item_by_index(&self, index: usize) -> Result<(), Error> {

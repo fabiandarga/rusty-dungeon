@@ -23,7 +23,7 @@
                 { "t": "AbilityCheck", "c": ["Agil", 2] },
                 { "t": "GainXp", "c": 30 }
             ]},
-            {"text": "right", "consequences": [
+            {"text": "Climb the wall", "consequences": [
                 { "t": "AbilityCheck", "c": ["Strg", 2] },
                 { "t": "GainXp", "c": 30 }
             ]}

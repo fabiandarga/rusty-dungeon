@@ -1,3 +1,4 @@
+use crate::models::models::Character;
 use std::rc::Rc;
 use crate::Skill;
 use crate::GameHandler;
@@ -17,8 +18,8 @@ pub struct CharacterView {}
 
 impl CharacterView {
     pub fn render(&self, frame: &mut Frame<impl Backend>, rect: Rect, game_state: &GameState) -> Result<(), String> {
-        let xp = game_state.xp;
-        let overview = self.build_overview(xp);
+        let Character { xp, hp, hp_max, .. } = game_state.character;
+        let overview = self.build_overview(xp, hp, hp_max);
 
         let skills = self.build_skill_section(&game_state.gained_skills[..]);
 
@@ -33,7 +34,7 @@ impl CharacterView {
         Ok(())
     }
 
-    fn build_overview(&self, xp: u16) -> Paragraph {
+    fn build_overview(&self, xp: u16, hp: u16, hp_max: u16) -> Paragraph {
         let content = vec![
             Spans::from(vec![
                 Span::styled("Character", Style::default().add_modifier(Modifier::BOLD))
@@ -41,6 +42,10 @@ impl CharacterView {
             Spans::from(vec![
                 Span::raw("Experience Points: "),
                 Span::styled(format!("{}", xp), Style::default().fg(Color::Green)),
+            ]),
+            Spans::from(vec![
+                Span::raw("Health: "),
+                Span::styled(format!("{}/{}", hp, hp_max), Style::default().fg(Color::Green)),
             ]),
         ];
         

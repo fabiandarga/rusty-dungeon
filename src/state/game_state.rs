@@ -6,7 +6,6 @@ use crate::models::models::{ Level, Room, Item, Skill, Character, BadResult };
 
 
 pub struct GameState {
-    pub xp: u16,
     pub level_points: u16,
     pub dungeon_state: DungeonState,
     pub current_level: Option<Rc<Level>>,
@@ -27,7 +26,6 @@ impl GameState {
         character.def = 2;
 
         GameState {
-            xp: 0,
             level_points: 0,
             dungeon_state: DungeonState::Room,
             current_level: None,
