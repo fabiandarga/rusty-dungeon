@@ -3,6 +3,7 @@ use crate::models::models::Reward;
 use crate::state::DungeonState;
 use std::rc::Rc;
 use crate::models::models::{ Level, Room, Item, Skill, Character, BadResult };
+use crate::models::attack_options::*;
 
 
 pub struct GameState {
@@ -62,6 +63,24 @@ impl GameState {
         } else {
             self.character.hp -= hp
         }
+    }
+
+    pub fn get_attack_options(&self) -> AttackOptions {
+        let mut options: AttackOptions = Vec::new();
+
+        options.push(AttackOption::Attack(AttackDescription {
+            title: "Unarmed".to_owned(),
+            attack_type: "physical".to_owned(),
+            dmg_min: 1,
+            dmg_max: 3,
+            special_effect: "".to_owned(),
+        }));
+
+        options.push(AttackOption::None);
+        options.push(AttackOption::None);
+        options.push(AttackOption::None);
+
+        options
     }
 }
 

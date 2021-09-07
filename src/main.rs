@@ -144,11 +144,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut items_view = ItemsView::new();
 
-    loop {
+    let mut dungeon_view = DungeonView::new();
+    let menu_view = MenuView {};
+    let character_view = CharacterView {};
 
-        let mut dungeon_view = DungeonView {};
-        let menu_view = MenuView {};
-        let character_view = CharacterView {};
+    loop {
 
         let state = state.clone();
 

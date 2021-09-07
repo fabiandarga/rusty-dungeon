@@ -1,6 +1,7 @@
 use crate::models::models::{ Reward, RewardType, Choice, ItemType, BadResult, BadResultType };
 use crate::GameHandler;
 use crate::Error;
+use crate::views::dungeon::BattleView;
 use tui::text::Spans;
 use tui::text::Span;
 use tui::widgets::Wrap;
@@ -18,9 +19,16 @@ use tui::{
 
 use ::tui::backend::Backend;
 
-pub struct DungeonView {}
+pub struct DungeonView {
+    battle_view: BattleView,
+}
 
 impl DungeonView {
+    pub fn new() -> DungeonView {
+        DungeonView {
+            battle_view: BattleView::new(),
+        }
+    }
     pub fn render(&self, frame: &mut Frame<impl Backend>, rect: Rect, game_state: &GameState) -> Result<(), Error> {
         match game_state.dungeon_state {
             DungeonState::Room => {
@@ -32,6 +40,9 @@ impl DungeonView {
             DungeonState::Failure => {
                 self.render_failure_screen(frame, rect, game_state);
             }
+            DungeonState::Encounter => {
+                self.battle_view.render(frame, rect, game_state)?;
+            }
             _ => {}
         }
         Ok(())
@@ -39,11 +50,11 @@ impl DungeonView {
 
     fn render_room(&self, frame: &mut Frame<impl Backend>, rect: Rect, game_state: &GameState) -> Result<(), Error> {
         let dungeon_chunks = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints(
-            [Constraint::Length(3), Constraint::Min(2), Constraint::Length(5)].as_ref(),
-        )
-        .split(rect);
+            .direction(Direction::Vertical)
+            .constraints(
+                [Constraint::Length(3), Constraint::Min(2), Constraint::Length(5)].as_ref(),
+            )
+            .split(rect);
 
         let room = match &game_state.current_room {
             Some(room) => room,
@@ -238,7 +249,9 @@ impl DungeonView {
                     _ => {}
                 }
             }
-            DungeonState::Encounter => {}
+            DungeonState::Encounter => {
+                self.battle_view.handle_input(key_code, game_handler)?;
+            }
             DungeonState::Result | DungeonState::Failure => {
                 match key_code {
                     KeyCode::Char('1') => {

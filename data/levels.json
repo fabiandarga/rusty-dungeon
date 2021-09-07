@@ -2,7 +2,7 @@
     {
         "name": "Test",
         "id": 1,
-        "rooms": [2],
+        "rooms": [2, 4],
         "level_points": 100,
         "first_room": 1,
         "final_room": 3

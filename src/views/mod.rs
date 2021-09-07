@@ -4,6 +4,7 @@ mod character_view;
 mod items_view;
 
 mod components;
+mod dungeon;
 
 pub use dungeon_view::*;
 pub use menu_view::*;

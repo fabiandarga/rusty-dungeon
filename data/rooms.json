@@ -36,5 +36,15 @@
         "choices": [
             {"text": "Ok", "consequences": []}
         ]
+    },
+    {
+        "id": 4,
+        "title": "Start Fight",
+        "text": "Arrrr!",
+        "choices": [
+            {"text": "Go in", "consequences": [
+                { "t": "StartFight", "c": 1}
+            ]}
+        ]
     }
 ]

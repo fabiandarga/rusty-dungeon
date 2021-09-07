@@ -96,7 +96,9 @@ impl GameHandler {
                             });
                         }
                     },
-                    StartFight(_id) => {},
+                    StartFight(_id) => {
+                        self.change_dungeon_state(DungeonState::Encounter);
+                    },
                     AbilityCheck(ability, dificulty) => {
                         let success = self.ability_check(ability.clone(), *dificulty)?;
                         if !success {
