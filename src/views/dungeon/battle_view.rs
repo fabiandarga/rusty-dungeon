@@ -1,3 +1,5 @@
+use tui::text::Span;
+use tui::text::Spans;
 use crate::GameHandler;
 use crossterm::event::KeyCode;
 use crate::Error;
@@ -14,6 +16,8 @@ use tui::{
 };
 
 use crate::models::attack_options::*;
+
+use crate::views::dungeon::battle::attack_helper::build_damage_text;
 
 pub struct BattleView {
     menu_state: ListState,
@@ -136,20 +140,37 @@ impl BattleView {
 
     fn build_battle_options(&self, options: &Vec<AttackOption>) -> (Paragraph, Paragraph, Paragraph, Paragraph) {
         return (
-            self.build_battle_tile(&options[0]),
-            self.build_battle_tile(&options[1]),
-            self.build_battle_tile(&options[2]),
-            self.build_battle_tile(&options[3])
+            self.build_battle_tile("1", &options[0]),
+            self.build_battle_tile("2", &options[1]),
+            self.build_battle_tile("3", &options[2]),
+            self.build_battle_tile("4", &options[3])
         );
     }
 
-    fn build_battle_tile(&self, option: &AttackOption) -> Paragraph {
+    fn build_battle_tile(&self, key: &str, option: &AttackOption) -> Paragraph {
         let p: Paragraph = match option {
             AttackOption::None => {
                 Paragraph::new("N/A")
             }
             AttackOption::Attack(description) => {
-                Paragraph::new(description.title.to_owned())
+                let title = vec![
+                    Spans::from(
+                        vec![
+                            Span::styled(format!("[{}]", key), Style::default().fg(Color::Yellow)),
+                            Span::raw(" "),
+                            Span::styled(description.title.to_owned(), Style::default().add_modifier(Modifier::BOLD)),
+                            Span::raw(" ("),
+                            Span::raw(description.attack_type.to_owned()),
+                            Span::raw(")"),
+                        ],
+                    ),
+                    Spans::from(vec![
+                        Span::raw("    "),
+                        Span::styled(build_damage_text(description.dmg_min, description.dmg_max),
+                            Style::default().fg(Color::LightRed)),
+                    ])
+                ];
+                Paragraph::new(title)
             }
         };
 
