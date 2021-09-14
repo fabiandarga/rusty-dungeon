@@ -7,7 +7,7 @@ pub trait Actor {
     fn selectAttack(&self) -> Box<AttackFunction>;
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ActorValues {
     pub name: String,
     pub hp: u16,

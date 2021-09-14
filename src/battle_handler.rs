@@ -3,17 +3,15 @@ use crate::models::models::Character;
 use crate::models::Enemy;
 
 pub struct BattleHandler {
-    pub enemies: Vec<Enemy>,
-    pub player: Option<Character>,
     pub actors: Vec<ActorValues>,
+    current_actor_index: usize,
 }
 
 impl BattleHandler {
     pub fn new() -> BattleHandler {
         BattleHandler {
-            enemies: Vec::new(),
             actors: Vec::new(),
-            player: None,
+            current_actor_index: 0,
         }
     }
 
@@ -61,9 +59,15 @@ mod tests {
 
     #[test]
     fn test_get_initiative() {
-        let character = Character::default();
-        let enemy_1 = Enemy::new(1, "Peter");
-        let enemy_2 = Enemy::new(2, "Paul");
+        let mut character = Character::default();
+        character.agil = 10;
+
+        let mut enemy_1 = Enemy::new(1, "Peter");
+        enemy_1.agil = 5;
+
+        let mut enemy_2 = Enemy::new(2, "Paul");
+        enemy_2.agil = 1;
+        
         let mut handler: BattleHandler = BattleHandler::new()
             .add_player(&character)
             .add_enemy(&enemy_1)
@@ -78,5 +82,7 @@ mod tests {
             .filter(|x| *x )
             .collect();
         assert_eq!(nones.len(), 0, "amount of actors without init");
+
+        assert_eq!(ordered.get(0).unwrap().name, character.name, "first is the player");
     }
 }

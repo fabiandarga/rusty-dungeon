@@ -50,7 +50,7 @@ pub enum ItemType {
     Armor,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Character {
     pub id: u16,
     pub name: String,
