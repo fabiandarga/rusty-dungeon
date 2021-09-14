@@ -1,27 +1,27 @@
-use tui::text::Span;
-use tui::text::Spans;
-use crate::GameHandler;
-use crossterm::event::KeyCode;
-use crate::Error;
-use crate::GameState;
-use tui::backend::Backend;
-use tui::Frame;
 use tui::{
+    Frame,
+    backend::Backend,
     layout::{ Rect, Layout, Direction, Constraint, Alignment },
     style::{Color, Style, Modifier},
-    text::Text,
+    text::{ Text, Span, Spans },
     widgets::{
         Block, BorderType, Borders, Paragraph, ListItem, List, ListState
     },
 };
+use crossterm::event::KeyCode;
 
-use crate::models::attack_options::*;
+use crate::models::{ BattleEvent, BattleEvents, attack_options::* };
+use crate::{ GameHandler, GameState, Error };
 
-use crate::views::dungeon::battle::attack_helper::build_damage_text;
+use crate::views::dungeon::battle::{ attack_helper::build_damage_text, BattleHistory };
+
+use crate::battle_handler::BattleHandler;
 
 pub struct BattleView {
     menu_state: ListState,
     menu_list: Vec<String>,
+    battle_events: BattleEvents,
+    battle_handler: BattleHandler,
 }
 
 impl BattleView {
@@ -32,6 +32,8 @@ impl BattleView {
         BattleView {
             menu_state: state,
             menu_list: vec!["Attack".to_string(), "Items".to_string(), "Other".to_string()],
+            battle_events: BattleEvents::new(),
+            battle_handler: BattleHandler::new(),
         }
     }
     pub fn render(&self, frame: &mut Frame<impl Backend>, rect: Rect, game_state: &GameState) -> Result<(), Error> {
@@ -42,6 +44,9 @@ impl BattleView {
             )
             .split(rect);
 
+        let top_chunks = Layout::default().direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(20), Constraint::Percentage(80)].as_ref()).split(main_chunks[0]);
+
         let menu_chunks = Layout::default()
             .direction(Direction::Horizontal)
             .constraints(
@@ -49,7 +54,9 @@ impl BattleView {
             )
             .split(main_chunks[1]);
 
-        frame.render_widget(self.render_image(), main_chunks[0]);
+        let history = BattleHistory::new(self.battle_events.clone());
+        frame.render_widget(history, top_chunks[0]);
+        frame.render_widget(self.render_image(), top_chunks[1]);
         
         let mut menu_state = self.menu_state.clone();
         frame.render_stateful_widget(self.build_battle_menu(), menu_chunks[0], &mut menu_state);
@@ -189,9 +196,6 @@ impl BattleView {
             KeyCode::Char('s') | KeyCode::Down => {
                 self.menu_down();
             }
-            KeyCode::Char('1') => {
-
-            }
             _ => {
                 match self.menu_state.selected() {
                     Some(0) => {
@@ -207,10 +211,10 @@ impl BattleView {
         Ok(true)
     }
 
-    fn handle_attack_input(&self, key_code: KeyCode, game_handler: &mut GameHandler) {
+    fn handle_attack_input(&mut self, key_code: KeyCode, _game_handler: &mut GameHandler) {
         match key_code {
             KeyCode::Char('1') => {
-
+                self.battle_events.events.push(BattleEvent::default())
             }
             KeyCode::Char('2') => {
 

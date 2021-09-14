@@ -34,6 +34,9 @@ use crate::game_handler::GameHandler;
 mod global_handler;
 use crate::global_handler::GlobalHandler;
 
+mod battle_handler;
+
+
 mod state;
 use crate::state::GameState;
 
@@ -44,6 +47,7 @@ mod errors;
 use crate::errors::Error;
 
 mod random;
+mod entities;
 
 const ITEMS_PATH: &str = "./data/items.json";
 const ROOMS_PATH: &str = "./data/rooms.json";

@@ -43,7 +43,6 @@ impl DungeonView {
             DungeonState::Encounter => {
                 self.battle_view.render(frame, rect, game_state)?;
             }
-            _ => {}
         }
         Ok(())
     }
