@@ -1,0 +1,20 @@
+[
+    {
+        "id": 1,
+        "name": "Cultist",
+        "template": "basic_melee_fighter",
+        "hp": 30,
+        "strg": 2,
+        "agil": 1,
+        "def": 1
+    },
+    {
+        "id": 1,
+        "name": "Cultist Leader",
+        "template": "basic_melee_fighter",
+        "hp": 35,
+        "strg": 3,
+        "agil": 3,
+        "def": 1
+    }
+]

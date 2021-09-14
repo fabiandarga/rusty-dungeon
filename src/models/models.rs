@@ -1,3 +1,4 @@
+use crate::data::WithId;
 use serde::{Deserialize, Serialize};
 use strum_macros::Display;
 
@@ -113,6 +114,12 @@ pub struct Skill {
     pub id: u16,
     pub name: String,
     pub modifiers: Vec<SkillModifier>,
+}
+
+impl WithId for Skill {
+    fn get_id(&self) -> u16 {
+        self.id
+    }
 }
 
 #[derive(Clone)]

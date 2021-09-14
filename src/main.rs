@@ -1,3 +1,5 @@
+use crate::models::Enemy;
+use crate::models::Encounter;
 use std::sync::Mutex;
 use std::sync::Arc;
 use std::fs;
@@ -53,6 +55,8 @@ const ITEMS_PATH: &str = "./data/items.json";
 const ROOMS_PATH: &str = "./data/rooms.json";
 const LEVEL_PATH: &str = "./data/levels.json";
 const SKILL_PATH: &str = "./data/skills.json";
+const ENCOUNTERS_PATH: &str = "./data/encounters.json";
+const ENEMIES_PATH: &str = "./data/enemies.json";
 
 enum Event<I> {
     Input(I),
@@ -85,8 +89,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let rooms: Vec<Room> = read_room_db().expect("can fetch rooms data");
     let items: Vec<Item> = read_item_db().expect("can fetch items data");
     let skills: Vec<Skill> = read_skill_db().expect("can fetch skills data");
+    let encounters: Vec<Encounter> = read_encounter_db().expect("can fetch skills data");
+    let enemies: Vec<Enemy> = read_enemies_db().expect("can fetch skills data");
 
-    let game_data = GameData::new(levels, rooms, items, skills);
+    let game_data = GameData::new(levels, rooms, items, skills, encounters, enemies);
 
     let game_handler = Arc::new(Mutex::new(GameHandler::new(game_data)));
 
@@ -281,5 +287,17 @@ fn read_room_db() -> Result<Vec<Room>, Error> {
 fn read_skill_db() -> Result<Vec<Skill>, Error> {
     let db_content = fs::read_to_string(SKILL_PATH)?;
     let parsed: Vec<Skill> = serde_json::from_str(&db_content)?;
+    Ok(parsed)
+}
+
+fn read_encounter_db() -> Result<Vec<Encounter>, Error> {
+    let db_content = fs::read_to_string(ENCOUNTERS_PATH)?;
+    let parsed: Vec<Encounter> = serde_json::from_str(&db_content)?;
+    Ok(parsed)
+}
+
+fn read_enemies_db() -> Result<Vec<Enemy>, Error> {
+    let db_content = fs::read_to_string(ENEMIES_PATH)?;
+    let parsed: Vec<Enemy> = serde_json::from_str(&db_content)?;
     Ok(parsed)
 }

@@ -1,3 +1,4 @@
+use crate::battle_handler::BattleHandler;
 use crate::models::models::{ Reward, RewardType, Ability, BadResult, BadResultType };
 use crate::state::DungeonState;
 use crate::Error;
@@ -15,12 +16,21 @@ use crate::random::ability_check_with_nd6;
 pub struct GameHandler {
     game_data: GameData,
     game_state: Arc<Mutex<GameState>>,
+    battle_handler: Arc<Mutex<BattleHandler>>,
 }
 
 impl GameHandler {
     pub fn new(game_data: GameData) -> GameHandler {
         let state = Arc::new(Mutex::new(GameState::new()));
-        GameHandler { game_data: game_data, game_state: state }
+        GameHandler { 
+            game_data: game_data,
+            game_state: state,
+            battle_handler: Arc::new(Mutex::new(BattleHandler::new())),
+        }
+    }
+
+    pub fn get_battle_handler(&self) -> Arc<Mutex<BattleHandler>> {
+        self.battle_handler.clone()
     }
 
     pub fn start_game(&mut self) -> Result<(), Error> {
