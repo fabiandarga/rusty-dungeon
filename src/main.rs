@@ -89,8 +89,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let rooms: Vec<Room> = read_room_db().expect("can fetch rooms data");
     let items: Vec<Item> = read_item_db().expect("can fetch items data");
     let skills: Vec<Skill> = read_skill_db().expect("can fetch skills data");
-    let encounters: Vec<Encounter> = read_encounter_db().expect("can fetch skills data");
-    let enemies: Vec<Enemy> = read_enemies_db().expect("can fetch skills data");
+    let encounters: Vec<Encounter> = read_encounter_db().expect("can fetch encounter data");
+    let enemies: Vec<Enemy> = read_enemies_db().expect("can fetch enemies data");
 
     let game_data = GameData::new(levels, rooms, items, skills, encounters, enemies);
 

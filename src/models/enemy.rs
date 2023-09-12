@@ -1,5 +1,5 @@
 use crate::data::WithId;
-use serde::{Deserialize};
+use serde::Deserialize;
 
 
 #[derive(Deserialize, Clone)]
@@ -7,6 +7,7 @@ pub struct Enemy {
     pub id: u16,
     pub name: String,
     pub template: String,
+    #[serde(skip)]
     pub hp: u16,
     #[serde(alias = "hp")]
     pub hp_max: u16,

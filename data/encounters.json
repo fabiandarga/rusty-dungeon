@@ -1,6 +1,7 @@
 [
     {
         "id": 1,
+        "text": "Encounter 1",
         "enemies": [
             [2, {"Amount": 1}],
             [1, {"Amount": 2}]
@@ -8,6 +9,7 @@
     },
     {
         "id": 2,
+        "text": "Ecounter 2",
         "enemies": [
             [1, {"Range": [1, 5]}]
         ]
